@@ -6,7 +6,7 @@ var handleDomo = function handleDomo(e) {
     width: 'hide'
   }, 350);
 
-  if ($('#domoName').val() == '' || $("#domoAge").val() == '') {
+  if ($('#domoName').val() == '' || $("#domoAge").val() == '' || $("#domoLevel").val() == '') {
     handleError("RAWR! All fields are required!");
     return false;
   }
@@ -39,6 +39,13 @@ var DomoForm = function DomoForm(props) {
     type: "text",
     name: "age",
     placeholder: "Domo Age"
+  }), /*#__PURE__*/React.createElement("label", {
+    htmlFor: "level"
+  }, "Level: "), /*#__PURE__*/React.createElement("input", {
+    id: "domoLevel",
+    type: "text",
+    name: "level",
+    placeholder: "Domo Level"
   }), /*#__PURE__*/React.createElement("input", {
     type: "hidden",
     name: "_csrf",
@@ -54,7 +61,17 @@ var DomoList = function DomoList(props) {
   if (props.domos.length === 0) {
     return /*#__PURE__*/React.createElement("div", {
       className: "domoList"
-    }, /*#__PURE__*/React.createElement("h3", {
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "makeDomoSubmit",
+      onClick: function onClick() {
+        return loadDomosFromServer();
+      }
+    }, "Load Mine"), /*#__PURE__*/React.createElement("button", {
+      className: "makeDomoSubmit",
+      onClick: function onClick() {
+        return loadDomosFromServer(true);
+      }
+    }, "Load All"), /*#__PURE__*/React.createElement("h3", {
       className: "emptyDomo"
     }, "No Domos yet"));
   }
@@ -71,19 +88,41 @@ var DomoList = function DomoList(props) {
       className: "domoName"
     }, "Name: ", domo.name), /*#__PURE__*/React.createElement("h3", {
       className: "domoAge"
-    }, "Age: ", domo.age));
+    }, "Age: ", domo.age), /*#__PURE__*/React.createElement("h3", {
+      className: "domoLevel"
+    }, "Level: ", domo.level));
   });
   return /*#__PURE__*/React.createElement("div", {
     className: "domoList"
-  }, domoNodes);
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "makeDomoSubmit",
+    onClick: function onClick() {
+      return loadDomosFromServer();
+    }
+  }, "Load Mine"), /*#__PURE__*/React.createElement("button", {
+    className: "makeDomoSubmit",
+    onClick: function onClick() {
+      return loadDomosFromServer(true);
+    }
+  }, "Load All"), domoNodes);
 };
 
 var loadDomosFromServer = function loadDomosFromServer() {
-  sendAjax('GET', '/getDomos', null, function (data) {
-    ReactDOM.render( /*#__PURE__*/React.createElement(DomoList, {
-      domos: data.domos
-    }), document.querySelector("#domos"));
-  });
+  var all = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+  if (all) {
+    sendAjax('GET', '/getAllDomos', null, function (data) {
+      ReactDOM.render( /*#__PURE__*/React.createElement(DomoList, {
+        domos: data.domos
+      }), document.querySelector("#domos"));
+    });
+  } else {
+    sendAjax('GET', '/getDomos', null, function (data) {
+      ReactDOM.render( /*#__PURE__*/React.createElement(DomoList, {
+        domos: data.domos
+      }), document.querySelector("#domos"));
+    });
+  }
 };
 
 var setup = function setup(csrf) {
