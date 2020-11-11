@@ -1,0 +1,14 @@
+body {
+    background-color: #212121;
+    color: white;
+}
+
+.loginContainer {
+    align-self: center;
+    margin-top: 50px;
+}
+
+.loginForm {
+    width: 400px;
+    margin: auto;
+}

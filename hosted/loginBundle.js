@@ -17,6 +17,7 @@ var _React = React,
     useState = _React.useState;
 var Form = ReactBootstrap.Form;
 var Button = ReactBootstrap.Button;
+var Navbar = ReactBootstrap.Navbar;
 
 var LoginPage = function LoginPage(props) {
   //state
@@ -54,12 +55,12 @@ var LoginPage = function LoginPage(props) {
     sendAjax("GET", "/getToken", null, function (result) {
       setCsrf(result.csrfToken);
     });
-  };
+  }; //handle logging in or signing up
+
 
   var handleLogin = function handleLogin() {
-    //make sure all fields are filled
     if (isSignup) {
-      if (username && password && password2) {
+      if (username && password && password2 && password === password2) {
         var loginData = {
           username: username,
           pass: password,
@@ -79,7 +80,14 @@ var LoginPage = function LoginPage(props) {
   }; //render
 
 
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Form, null, /*#__PURE__*/React.createElement(Form.Group, {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Navbar, {
+    bg: "dark",
+    variant: "dark"
+  }, /*#__PURE__*/React.createElement(Navbar.Brand, null, "Fast! Circle! Click!")), /*#__PURE__*/React.createElement("div", {
+    className: "loginContainer"
+  }, /*#__PURE__*/React.createElement(Form, {
+    className: "loginForm"
+  }, /*#__PURE__*/React.createElement(Form.Group, {
     controlId: "username"
   }, /*#__PURE__*/React.createElement(Form.Label, null, "Username"), /*#__PURE__*/React.createElement(Form.Control, {
     type: "text",
@@ -116,9 +124,9 @@ var LoginPage = function LoginPage(props) {
       setIsSignUp(!isSignup);
     }
   })), /*#__PURE__*/React.createElement(Button, {
-    variant: "primary",
+    variant: "outline-light",
     onClick: handleLogin
-  }, "Login")));
+  }, "Login"))));
 };
 
 var rootElement = document.getElementById("content");

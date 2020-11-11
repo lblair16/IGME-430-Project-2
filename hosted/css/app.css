@@ -1,0 +1,15 @@
+body {
+  background-color: #212121;
+  color: white;
+}
+
+.levelHeader {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.center-items {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

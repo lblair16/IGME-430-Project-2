@@ -28,6 +28,14 @@ const AccountSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  score: {
+    type: Number,
+    default: 0
+  },
+  unlocked: {
+    type: Boolean,
+    default: false
+  }
 });
 
 AccountSchema.statics.toAPI = (doc) => ({
