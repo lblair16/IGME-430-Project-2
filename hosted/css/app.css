@@ -13,3 +13,12 @@ body {
   justify-content: center;
   align-items: center;
 }
+
+.game-container {
+  background-color: black;
+  border-radius: 10px;
+}
+
+.target-label {
+  margin-top: 5px;
+}

@@ -30,12 +30,12 @@ const AccountSchema = new mongoose.Schema({
   },
   score: {
     type: Number,
-    default: 0
+    default: 0,
   },
   unlocked: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 AccountSchema.statics.toAPI = (doc) => ({

@@ -66,7 +66,7 @@ const signup = (request, response) => {
 
     savePromise.then(() => {
       req.session.account = Account.AccountModel.toAPI(newAccount);
-      //fix
+      // fix
       res.json({ redirect: '/app' });
     });
 
@@ -98,5 +98,5 @@ module.exports = {
   logout,
   signup,
   getToken,
-  appPage
+  appPage,
 };
