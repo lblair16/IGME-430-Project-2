@@ -2,6 +2,10 @@ const redirect = (response) => {
     window.location = response.redirect;
 };
 
+const handleError = (message) => {
+    console.log(message);
+};
+
 const sendAjax = (type, action, data, success) => {
     $.ajax({
         cache: false,

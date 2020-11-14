@@ -78,7 +78,6 @@ AccountSchema.statics.authenticate = (username, password, callback) => {
     if (!doc) {
       return callback();
     }
-
     return validatePassword(doc, password, (result) => {
       if (result === true) {
         return callback(null, doc);

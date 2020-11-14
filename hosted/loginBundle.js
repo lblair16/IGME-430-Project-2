@@ -137,6 +137,10 @@ var redirect = function redirect(response) {
   window.location = response.redirect;
 };
 
+var handleError = function handleError(message) {
+  console.log(message);
+};
+
 var sendAjax = function sendAjax(type, action, data, success) {
   $.ajax({
     cache: false,

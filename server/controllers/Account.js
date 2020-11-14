@@ -27,14 +27,95 @@ const login = (request, response) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  return Account.AccountModel.authenticate(username, password, (err, account) => {
-    if (err || !account) {
-      return res.status(400).json({ error: 'Wrong username or password' });
-    }
-    req.session.account = Account.AccountModel.toAPI(account);
-    return res.json({ redirect: '/app' });
-  });
+  return Account.AccountModel.authenticate(
+    username,
+    password,
+    (err, account) => {
+      if (err || !account) {
+        return res.status(400).json({ error: 'Wrong username or password' });
+      }
+      req.session.account = Account.AccountModel.toAPI(account);
+      return res.json({ redirect: '/app' });
+    },
+  );
 };
+
+const changePassword = (req, res) => {
+  // cast strings for security
+  const oldPassword = `${req.body.oldPassword}`;
+  const newPassword = `${req.body.newPassword}`;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  return Account.AccountModel.authenticate(
+    req.session.account.username,
+    oldPassword,
+    (err, account) => {
+      if (err || !account) {
+        return res.status(400).json({ error: 'Wrong password' });
+      }
+      return Account.AccountModel.generateHash(newPassword, (salt, hash) => {
+        const newAccount = account;
+        newAccount.password = hash;
+        newAccount.salt = salt;
+        const savePromise = newAccount.save();
+        savePromise.then(() => {
+          req.session.account = Account.AccountModel.toAPI(newAccount);
+          res.status(204).send();
+        });
+        savePromise.catch((err2) => {
+          console.log(err2);
+          return res.status(400).json({ error: 'An error occured' });
+        });
+      });
+    },
+  );
+};
+
+// const changeUsername = (req, res) => {
+//   // cast strings for security
+//   console.log(req.session.account);
+//   const newUsername = `${req.body.username}`;
+//   const password = `${req.body.password}`;
+
+//   if (!newUsername || !password) {
+//     return res.status(400).json({ error: "All fields are required" });
+//   }
+
+//   return Account.AccountModel.authenticate(
+//     req.session.account.username,
+//     password,
+//     (err, account) => {
+//       console.log(err);
+//       if (err || !account) {
+//         return res.status(400).json({ error: "Wrong password" });
+//       }
+//       Account.AccountModel.findByUsername(newUsername, (err, doc) => {
+//         if (err) {
+//           return res.status(400).json({ error: "An error occured" });
+//         }
+//         console.log(doc);
+//         if (!doc) {
+//           console.log('here');
+//           account.username = newUsername;
+
+//           const savePromise = account.save();
+//           savePromise.then(() => {
+//             req.session.account = Account.AccountModel.toAPI(account);
+//             return res.status(204).send();
+//           });
+//           savePromise.catch((err) => {
+//             console.log(err);
+//             return res.status(400).json({ error: "An error occured" });
+//           });
+//         }
+//         return res.status(400).json({ error: "Username already in use" });
+//       });
+//     }
+//   );
+// };
 
 const signup = (request, response) => {
   const req = request;
@@ -66,7 +147,6 @@ const signup = (request, response) => {
 
     savePromise.then(() => {
       req.session.account = Account.AccountModel.toAPI(newAccount);
-      // fix
       res.json({ redirect: '/app' });
     });
 
@@ -99,4 +179,6 @@ module.exports = {
   signup,
   getToken,
   appPage,
+  changePassword,
+  // changeUsername,
 };
