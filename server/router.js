@@ -3,10 +3,11 @@ const mid = require('./middleware');
 
 const router = (app) => {
   app.get('/getToken', mid.requiresSecure, controllers.Account.getToken);
-  //   app.get('/login', mid.requiresSecure, mid.requiresLogout, controllers.Account.loginPage);
-  app.get('/app', mid.requiresLogin, controllers.Account.appPage);
-  app.post('/changePassword', mid.requiresLogin, controllers.Account.changePassword);
-  // app.post('/changeUsername', mid.requiresLogin, controllers.Account.changeUsername);
+  app.get('/app', mid.requiresLogin, mid.requiresSecure, controllers.Account.appPage);
+  app.get('/getAccount', mid.requiresLogin, mid.requiresSecure, controllers.Account.getAccount);
+  app.get('/unlockAccount', mid.requiresLogin, mid.requiresSecure, controllers.Account.unlockAccount);
+  app.post('/changePassword', mid.requiresLogin, mid.requiresSecure, controllers.Account.changePassword);
+  app.post('/addScore', mid.requiresLogin, mid.requiresSecure, controllers.Account.addScore);
   app.post('/login', mid.requiresSecure, mid.requiresLogout, controllers.Account.login);
   app.post('/signup', mid.requiresSecure, mid.requiresLogout, controllers.Account.signup);
   app.get('/logout', mid.requiresLogin, controllers.Account.logout);

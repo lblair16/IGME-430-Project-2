@@ -32,7 +32,10 @@ var ButtonGroup = ReactBootstrap.ButtonGroup;
 var Tabs = ReactBootstrap.Tabs;
 var Tab = ReactBootstrap.Tab;
 var Form = ReactBootstrap.Form;
-var Button = ReactBootstrap.Button;
+var Button = ReactBootstrap.Button; //timer vars for scoring
+
+var lastTime = 0;
+var currTime = 0;
 
 var Game = function Game(props) {
   var colors = ["#f54242", "#f58142", "#f5e042", "#bcf542", "#72f542", "#42f5a7", "#42f5f2", "#42a4f5", "#4542f5", "#8142f5", "#d442f5", "#f54281"];
@@ -45,11 +48,27 @@ var Game = function Game(props) {
   var _useState3 = useState({}),
       _useState4 = _slicedToArray(_useState3, 2),
       gameColors = _useState4[0],
-      setGameColors = _useState4[1]; //initalize game
+      setGameColors = _useState4[1];
+
+  var _useState5 = useState(0),
+      _useState6 = _slicedToArray(_useState5, 2),
+      score = _useState6[0],
+      setScore = _useState6[1];
+
+  var _useState7 = useState(0),
+      _useState8 = _slicedToArray(_useState7, 2),
+      lastScore = _useState8[0],
+      setLastScore = _useState8[1]; //initalize game
 
 
   useEffect(function () {
+    createGame(true);
+  }, [props.level]);
+
+  var createGame = function createGame(newLevel) {
     var tempGame = {};
+    lastTime = 0;
+    currTime = 0;
 
     if (props.level === "1") {
       for (var i = 0; i < 3; i++) {
@@ -77,18 +96,16 @@ var Game = function Game(props) {
       }
     }
 
+    setLastScore(newLevel ? 0 : score);
+    setScore(400 + 100 * Number(props.level));
     getAllActive(tempGame);
     setGameColors(tempGame);
-  }, [props.level]); //get the fill for a circle, track all of the colors being used
+  }; //get the fill for a circle, track all of the colors being used
+
 
   var getfill = function getfill() {
     var index = Math.floor(Math.random() * Math.floor(colors.length));
-    var currFill = colors[index]; // if (!activeColors.includes(currFill)) {
-    //   let newActive = [...activeColors];
-    //   newActive.push(currFill);
-    //   setActiveColors(newActive);
-    // }
-
+    var currFill = colors[index];
     return currFill;
   }; //get all of the active colors at the start of a game
 
@@ -115,9 +132,17 @@ var Game = function Game(props) {
       } finally {
         _iterator.f();
       }
+    } //reset the level when all the circles are gone
+
+
+    if (allColors.length === 0) {
+      props.addScore(score);
+      createGame(false);
+      return true;
     }
 
     setActiveColors(_.shuffle(allColors));
+    return false;
   }; //check to see if the user clicked on the correct circle, update game accordingly
 
 
@@ -125,17 +150,35 @@ var Game = function Game(props) {
     var index = event.target.id.split("-");
 
     if (activeColors[0] === gameColors[index[0]][index[1]]) {
+      currTime = Math.floor(Date.now() / 100);
+      var diff = lastTime === 0 ? 0 : currTime - lastTime;
+      var newScore = score;
+      newScore = newScore - diff;
+      setScore(newScore);
+      lastTime = currTime;
+
       var tempGame = _objectSpread({}, gameColors);
 
       tempGame[index[0]][index[1]] = "black";
-      getAllActive(tempGame);
-      setGameColors(tempGame);
+      var finished = getAllActive(tempGame);
+
+      if (!finished) {
+        setGameColors(tempGame);
+      }
     }
   };
 
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Container, null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Container, null, /*#__PURE__*/React.createElement(Row, {
+    style: {
+      marginTop: "10px"
+    }
+  }, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Last Score: ", lastScore)), /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Score: ", score)), /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Account Score: ", props.currAccount.score))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+    className: "center-items"
+  }, /*#__PURE__*/React.createElement("h5", {
     className: "target-label"
-  }, "Current Target"), /*#__PURE__*/React.createElement("svg", {
+  }, "Current Target"))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+    className: "center-items"
+  }, /*#__PURE__*/React.createElement("svg", {
     height: "100",
     width: "100"
   }, /*#__PURE__*/React.createElement("circle", {
@@ -171,34 +214,24 @@ var Game = function Game(props) {
 };
 
 var App = function App(props) {
-  var _useState5 = useState("1"),
-      _useState6 = _slicedToArray(_useState5, 2),
-      currLevel = _useState6[0],
-      setCurrLevel = _useState6[1];
+  var _useState9 = useState("1"),
+      _useState10 = _slicedToArray(_useState9, 2),
+      currLevel = _useState10[0],
+      setCurrLevel = _useState10[1];
 
-  var _useState7 = useState({
+  var _useState11 = useState({
     1: false,
     2: false,
     3: false
   }),
-      _useState8 = _slicedToArray(_useState7, 2),
-      disabledLevels = _useState8[0],
-      setDisabledLevels = _useState8[1];
-
-  var _useState9 = useState("home"),
-      _useState10 = _slicedToArray(_useState9, 2),
-      tab = _useState10[0],
-      setTab = _useState10[1];
-
-  var _useState11 = useState(""),
       _useState12 = _slicedToArray(_useState11, 2),
-      username = _useState12[0],
-      setUsername = _useState12[1];
+      disabledLevels = _useState12[0],
+      setDisabledLevels = _useState12[1];
 
-  var _useState13 = useState(""),
+  var _useState13 = useState("home"),
       _useState14 = _slicedToArray(_useState13, 2),
-      password = _useState14[0],
-      setPassword = _useState14[1];
+      tab = _useState14[0],
+      setTab = _useState14[1];
 
   var _useState15 = useState(""),
       _useState16 = _slicedToArray(_useState15, 2),
@@ -215,6 +248,11 @@ var App = function App(props) {
       csrf = _useState20[0],
       setCsrf = _useState20[1];
 
+  var _useState21 = useState({}),
+      _useState22 = _slicedToArray(_useState21, 2),
+      currAccount = _useState22[0],
+      setCurrAccount = _useState22[1];
+
   var levels = [{
     name: "3x3",
     value: "1"
@@ -228,24 +266,28 @@ var App = function App(props) {
 
   useEffect(function () {
     getToken();
-  }, []); //security token
+    getAccount();
+  }, []);
+  useEffect(function () {
+    setDisabledLevels({
+      1: false,
+      2: currAccount.unlocked || currAccount.score && currAccount.score > 10000 ? false : true,
+      3: currAccount.unlocked || currAccount.score && currAccount.score > 20000 ? false : true
+    });
+  }, [currAccount]); //security token
 
   var getToken = function getToken() {
     sendAjax("GET", "/getToken", null, function (result) {
       setCsrf(result.csrfToken);
     });
-  }; // const changeUsername = () => {
-  //   let userData = {
-  //     username: username,
-  //     password: password,
-  //     _csrf: csrf,
-  //   };
-  //   sendAjax("POST", "/changeUsername", userData, () => {
-  //     setPassword("");
-  //     setUsername("");
-  //   });
-  // };
+  }; //active account
 
+
+  var getAccount = function getAccount() {
+    sendAjax("GET", "/getAccount", null, function (result) {
+      setCurrAccount(result.account);
+    });
+  };
 
   var changePassword = function changePassword() {
     var passwordData = {
@@ -256,6 +298,26 @@ var App = function App(props) {
     sendAjax("POST", "/changePassword", passwordData, function () {
       setNewPassword("");
       setPassword2("");
+    });
+  };
+
+  var unlockAccount = function unlockAccount() {
+    sendAjax("GET", "/unlockAccount", null, function (result) {
+      if (result.account) {
+        setCurrAccount(result.account);
+      }
+    });
+  };
+
+  var addScore = function addScore(newScore) {
+    var scoreData = {
+      score: newScore,
+      _csrf: csrf
+    };
+    sendAjax("POST", "/addScore", scoreData, function (result) {
+      if (result.account) {
+        setCurrAccount(result.account);
+      }
     });
   };
 
@@ -293,7 +355,9 @@ var App = function App(props) {
       disabled: disabledLevels[level.value]
     }, level.name);
   })))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement(Game, {
-    level: currLevel
+    level: currLevel,
+    currAccount: currAccount,
+    addScore: addScore
   }))))), /*#__PURE__*/React.createElement(Tab, {
     eventKey: "account",
     title: "Account"
@@ -320,7 +384,10 @@ var App = function App(props) {
   })), /*#__PURE__*/React.createElement(Button, {
     variant: "outline-light",
     onClick: changePassword
-  }, "Submit"))))))));
+  }, "Submit")))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Unlock All Content"), !currAccount.unlocked && /*#__PURE__*/React.createElement(Button, {
+    variant: "outline-light",
+    onClick: unlockAccount
+  }, "Purchase"), currAccount.unlocked && /*#__PURE__*/React.createElement("p", null, "Purchased!")))))));
 };
 
 var rootElement = document.getElementById("content");

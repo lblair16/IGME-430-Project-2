@@ -10,6 +10,10 @@ const Tab = ReactBootstrap.Tab;
 const Form = ReactBootstrap.Form;
 const Button = ReactBootstrap.Button;
 
+//timer vars for scoring
+let lastTime = 0;
+let currTime = 0;
+
 const Game = (props) => {
   const colors = [
     "#f54242",
@@ -28,10 +32,18 @@ const Game = (props) => {
 
   const [activeColors, setActiveColors] = useState([]);
   const [gameColors, setGameColors] = useState({});
+  const [score, setScore] = useState(0);
+  const [lastScore, setLastScore] = useState(0);
 
   //initalize game
   useEffect(() => {
+    createGame(true);
+  }, [props.level]);
+
+  const createGame = (newLevel) => {
     let tempGame = {};
+    lastTime = 0;
+    currTime = 0;
     if (props.level === "1") {
       for (let i = 0; i < 3; i++) {
         tempGame[i] = [];
@@ -54,19 +66,16 @@ const Game = (props) => {
         }
       }
     }
+    setLastScore(newLevel ? 0 : score);
+    setScore(400 + 100 * Number(props.level));
     getAllActive(tempGame);
     setGameColors(tempGame);
-  }, [props.level]);
+  };
 
   //get the fill for a circle, track all of the colors being used
   const getfill = () => {
     const index = Math.floor(Math.random() * Math.floor(colors.length));
     let currFill = colors[index];
-    // if (!activeColors.includes(currFill)) {
-    //   let newActive = [...activeColors];
-    //   newActive.push(currFill);
-    //   setActiveColors(newActive);
-    // }
     return currFill;
   };
 
@@ -80,26 +89,56 @@ const Game = (props) => {
         }
       }
     }
+    //reset the level when all the circles are gone
+    if (allColors.length === 0) {
+      props.addScore(score);
+      createGame(false);
+      return true;
+    }
     setActiveColors(_.shuffle(allColors));
+    return false;
   };
 
   //check to see if the user clicked on the correct circle, update game accordingly
   const circleClick = (event) => {
     let index = event.target.id.split("-");
     if (activeColors[0] === gameColors[index[0]][index[1]]) {
+      currTime = Math.floor(Date.now() / 100);
+      let diff = lastTime === 0 ? 0 : currTime - lastTime;
+      let newScore = score;
+      newScore = newScore - diff;
+      setScore(newScore);
+      lastTime = currTime;
       let tempGame = { ...gameColors };
       tempGame[index[0]][index[1]] = "black";
-      getAllActive(tempGame);
-      setGameColors(tempGame);
+      let finished = getAllActive(tempGame);
+      if (!finished) {
+        setGameColors(tempGame);
+      }
     }
   };
 
   return (
     <div>
       <Container>
-        <Row>
+        <Row style={{ marginTop: "10px" }}>
           <Col>
+            <h5>Last Score: {lastScore}</h5>
+          </Col>
+          <Col>
+            <h5>Score: {score}</h5>
+          </Col>
+          <Col>
+            <h5>Account Score: {props.currAccount.score}</h5>
+          </Col>
+        </Row>
+        <Row>
+          <Col className="center-items">
             <h5 className="target-label">Current Target</h5>
+          </Col>
+        </Row>
+        <Row>
+          <Col className="center-items">
             <svg height="100" width="100">
               <circle
                 cx="50"
@@ -146,11 +185,10 @@ const App = (props) => {
     3: false,
   });
   const [tab, setTab] = useState("home");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [csrf, setCsrf] = useState();
+  const [currAccount, setCurrAccount] = useState({});
 
   const levels = [
     { name: "3x3", value: "1" },
@@ -161,7 +199,22 @@ const App = (props) => {
   //on load get security token
   useEffect(() => {
     getToken();
+    getAccount();
   }, []);
+
+  useEffect(() => {
+    setDisabledLevels({
+      1: false,
+      2:
+        currAccount.unlocked || (currAccount.score && currAccount.score > 10000)
+          ? false
+          : true,
+      3:
+        currAccount.unlocked || (currAccount.score && currAccount.score > 20000)
+          ? false
+          : true,
+    });
+  }, [currAccount]);
 
   //security token
   const getToken = () => {
@@ -170,17 +223,12 @@ const App = (props) => {
     });
   };
 
-  // const changeUsername = () => {
-  //   let userData = {
-  //     username: username,
-  //     password: password,
-  //     _csrf: csrf,
-  //   };
-  //   sendAjax("POST", "/changeUsername", userData, () => {
-  //     setPassword("");
-  //     setUsername("");
-  //   });
-  // };
+  //active account
+  const getAccount = () => {
+    sendAjax("GET", "/getAccount", null, (result) => {
+      setCurrAccount(result.account);
+    });
+  };
 
   const changePassword = () => {
     let passwordData = {
@@ -191,6 +239,26 @@ const App = (props) => {
     sendAjax("POST", "/changePassword", passwordData, () => {
       setNewPassword("");
       setPassword2("");
+    });
+  };
+
+  const unlockAccount = () => {
+    sendAjax("GET", "/unlockAccount", null, (result) => {
+      if (result.account) {
+        setCurrAccount(result.account);
+      }
+    });
+  };
+
+  const addScore = (newScore) => {
+    let scoreData = {
+      score: newScore,
+      _csrf: csrf,
+    };
+    sendAjax("POST", "/addScore", scoreData, (result) => {
+      if (result.account) {
+        setCurrAccount(result.account);
+      }
     });
   };
 
@@ -234,7 +302,11 @@ const App = (props) => {
             </Row>
             <Row>
               <Col>
-                <Game level={currLevel} />
+                <Game
+                  level={currLevel}
+                  currAccount={currAccount}
+                  addScore={addScore}
+                />
               </Col>
             </Row>
           </Container>
@@ -246,34 +318,6 @@ const App = (props) => {
                 <h3>Account Settings</h3>
               </Col>
             </Row>
-            {/* <Row>
-              <Col>
-                <h5>Change Username</h5>
-                <Form>
-                  <Form.Group controlId="username">
-                    <Form.Label>New Username</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Enter New Username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                    />
-                  </Form.Group>
-                  <Form.Group controlId="password">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control
-                      type="password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </Form.Group>
-                  <Button variant="outline-light" onClick={changeUsername}>
-                    Submit
-                  </Button>
-                </Form>
-              </Col>
-            </Row> */}
             <Row>
               <Col>
                 <h5>Change Password</h5>
@@ -300,6 +344,17 @@ const App = (props) => {
                     Submit
                   </Button>
                 </Form>
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <h5>Unlock All Content</h5>
+                {!currAccount.unlocked && (
+                  <Button variant="outline-light" onClick={unlockAccount}>
+                    Purchase
+                  </Button>
+                )}
+                {currAccount.unlocked && <p>Purchased!</p>}
               </Col>
             </Row>
           </Container>

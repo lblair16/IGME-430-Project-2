@@ -3,11 +3,14 @@ const models = require('../models');
 const { Account } = models;
 
 const loginPage = (req, res) => {
-  res.render('login', { csrfToken: req.csrfToken() });
+  res.render('login', { csrfToken: req.csrfToken(), title: 'Login' });
 };
 
 const appPage = (req, res) => {
-  res.render('app', { csrfToken: req.csrfToken() });
+  res.render('app', {
+    csrfToken: req.csrfToken(),
+    title: `Welcome, ${req.session.account.username}!`,
+  });
 };
 
 const logout = (req, res) => {
@@ -74,49 +77,6 @@ const changePassword = (req, res) => {
   );
 };
 
-// const changeUsername = (req, res) => {
-//   // cast strings for security
-//   console.log(req.session.account);
-//   const newUsername = `${req.body.username}`;
-//   const password = `${req.body.password}`;
-
-//   if (!newUsername || !password) {
-//     return res.status(400).json({ error: "All fields are required" });
-//   }
-
-//   return Account.AccountModel.authenticate(
-//     req.session.account.username,
-//     password,
-//     (err, account) => {
-//       console.log(err);
-//       if (err || !account) {
-//         return res.status(400).json({ error: "Wrong password" });
-//       }
-//       Account.AccountModel.findByUsername(newUsername, (err, doc) => {
-//         if (err) {
-//           return res.status(400).json({ error: "An error occured" });
-//         }
-//         console.log(doc);
-//         if (!doc) {
-//           console.log('here');
-//           account.username = newUsername;
-
-//           const savePromise = account.save();
-//           savePromise.then(() => {
-//             req.session.account = Account.AccountModel.toAPI(account);
-//             return res.status(204).send();
-//           });
-//           savePromise.catch((err) => {
-//             console.log(err);
-//             return res.status(400).json({ error: "An error occured" });
-//           });
-//         }
-//         return res.status(400).json({ error: "Username already in use" });
-//       });
-//     }
-//   );
-// };
-
 const signup = (request, response) => {
   const req = request;
   const res = response;
@@ -172,6 +132,61 @@ const getToken = (request, response) => {
   res.json(csrfJSON);
 };
 
+const getAccount = (req, res) => {
+  res.json({ account: req.session.account });
+};
+
+const unlockAccount = (req, res) => {
+  Account.AccountModel.findByUsername(
+    req.session.account.username,
+    (err, doc) => {
+      if (err || !doc) {
+        return res.status(400).json({ error: 'An error occured' });
+      }
+      const updatedAccount = doc;
+      updatedAccount.unlocked = true;
+      const savePromise = updatedAccount.save();
+      savePromise.then(() => {
+        req.session.account = Account.AccountModel.toAPI(updatedAccount);
+        return res.status(200).json({ account: req.session.account });
+      });
+      savePromise.catch((err2) => {
+        console.log(err2);
+        return res.status(400).json({ error: 'An error occured' });
+      });
+      return true;
+    },
+  );
+};
+
+const addScore = (req, res) => {
+  if (req.body.score) {
+    Account.AccountModel.findByUsername(
+      req.session.account.username,
+      (err, doc) => {
+        if (err || !doc) {
+          return res.status(400).json({ error: 'An error occured' });
+        }
+        const updatedAccount = doc;
+        updatedAccount.score += Number(req.body.score);
+        const savePromise = updatedAccount.save();
+        savePromise.then(() => {
+          req.session.account = Account.AccountModel.toAPI(updatedAccount);
+          return res.status(200).json({ account: req.session.account });
+        });
+        savePromise.catch((err2) => {
+          console.log(err2);
+          return res.status(400).json({ error: 'An error occured' });
+        });
+        return true;
+      },
+    );
+  } else {
+    return res.status(400).json({ error: 'Must include a score' });
+  }
+  return true;
+};
+
 module.exports = {
   loginPage,
   login,
@@ -180,5 +195,7 @@ module.exports = {
   getToken,
   appPage,
   changePassword,
-  // changeUsername,
+  getAccount,
+  unlockAccount,
+  addScore,
 };
