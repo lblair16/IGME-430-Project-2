@@ -1,12 +1,15 @@
+//redirect the window to the appropriate page
 const redirect = (response) => {
     window.location = response.redirect;
 };
 
+//default error handler if one isn't provided
 const handleError = (message) => {
     console.log(message);
 };
 
-const sendAjax = (type, action, data, success) => {
+//handle an ajax request
+const sendAjax = (type, action, data, success, userError) => {
     $.ajax({
         cache: false,
         type: type,
@@ -16,7 +19,7 @@ const sendAjax = (type, action, data, success) => {
         success: success,
         error: function (xhr, status, error) {
             var messageObj = JSON.parse(xhr.responseText);
-            handleError(messageObj.error);
+            userError ? userError(messageObj.error) : handleError(messageObj.error);
         }
     })
 }

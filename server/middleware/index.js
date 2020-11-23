@@ -1,3 +1,4 @@
+// ensure this request is from a user that is logged in
 const requiresLogin = (req, res, next) => {
   if (!req.session.account) {
     return res.redirect('/');
@@ -5,6 +6,7 @@ const requiresLogin = (req, res, next) => {
   return next();
 };
 
+// ensure this request is from a user who is logged out
 const requiresLogout = (req, res, next) => {
   if (req.session.account) {
     return res.redirect('/app');
@@ -12,6 +14,7 @@ const requiresLogout = (req, res, next) => {
   return next();
 };
 
+// ensure this request is being sent over https
 const requiresSecure = (req, res, next) => {
   if (req.headers['x-forwarded-proto'] !== 'https') {
     return res.redirect(`https://${req.hostname}${req.url}`);
@@ -19,6 +22,7 @@ const requiresSecure = (req, res, next) => {
   return next();
 };
 
+// ignore https if running in development
 const bypassSecure = (req, res, next) => {
   next();
 };

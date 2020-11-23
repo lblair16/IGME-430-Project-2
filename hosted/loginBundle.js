@@ -18,6 +18,7 @@ var _React = React,
 var Form = ReactBootstrap.Form;
 var Button = ReactBootstrap.Button;
 var Navbar = ReactBootstrap.Navbar;
+var Alert = ReactBootstrap.Alert;
 
 var LoginPage = function LoginPage(props) {
   //state
@@ -44,7 +45,17 @@ var LoginPage = function LoginPage(props) {
   var _useState9 = useState(false),
       _useState10 = _slicedToArray(_useState9, 2),
       isSignup = _useState10[0],
-      setIsSignUp = _useState10[1]; //on load get security token
+      setIsSignUp = _useState10[1];
+
+  var _useState11 = useState(false),
+      _useState12 = _slicedToArray(_useState11, 2),
+      showAlert = _useState12[0],
+      setShowAlert = _useState12[1];
+
+  var _useState13 = useState("Error"),
+      _useState14 = _slicedToArray(_useState13, 2),
+      errorText = _useState14[0],
+      setErrorText = _useState14[1]; //on load get security token
 
 
   useEffect(function () {
@@ -54,7 +65,13 @@ var LoginPage = function LoginPage(props) {
   var getToken = function getToken() {
     sendAjax("GET", "/getToken", null, function (result) {
       setCsrf(result.csrfToken);
-    });
+    }, handleError);
+  }; //show error alert with message
+
+
+  var handleError = function handleError(message) {
+    setShowAlert(true);
+    setErrorText(message);
   }; //handle logging in or signing up
 
 
@@ -67,7 +84,9 @@ var LoginPage = function LoginPage(props) {
           pass2: password2,
           _csrf: csrf
         };
-        sendAjax("POST", "/signup", loginData, redirect);
+        sendAjax("POST", "/signup", loginData, redirect, handleError);
+      } else {
+        handleError("All fields are required and passwords must match");
       }
     } else if (username && password) {
       var _loginData = {
@@ -75,7 +94,9 @@ var LoginPage = function LoginPage(props) {
         pass: password,
         _csrf: csrf
       };
-      sendAjax("POST", "/login", _loginData, redirect);
+      sendAjax("POST", "/login", _loginData, redirect, handleError);
+    } else {
+      handleError("All fields are required");
     }
   }; //render
 
@@ -83,7 +104,13 @@ var LoginPage = function LoginPage(props) {
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Navbar, {
     bg: "dark",
     variant: "dark"
-  }, /*#__PURE__*/React.createElement(Navbar.Brand, null, "Fast! Circle! Click!")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(Navbar.Brand, null, "Fast! Circle! Click!")), showAlert && /*#__PURE__*/React.createElement(Alert, {
+    variant: "danger",
+    onClose: function onClose() {
+      return setShowAlert(false);
+    },
+    dismissible: true
+  }, /*#__PURE__*/React.createElement(Alert.Heading, null, errorText)), /*#__PURE__*/React.createElement("div", {
     className: "loginContainer"
   }, /*#__PURE__*/React.createElement(Form, {
     className: "loginForm"
@@ -133,15 +160,18 @@ var rootElement = document.getElementById("content");
 ReactDOM.render( /*#__PURE__*/React.createElement(LoginPage, null), rootElement);
 "use strict";
 
+//redirect the window to the appropriate page
 var redirect = function redirect(response) {
   window.location = response.redirect;
-};
+}; //default error handler if one isn't provided
+
 
 var handleError = function handleError(message) {
   console.log(message);
-};
+}; //handle an ajax request
 
-var sendAjax = function sendAjax(type, action, data, success) {
+
+var sendAjax = function sendAjax(type, action, data, success, userError) {
   $.ajax({
     cache: false,
     type: type,
@@ -151,7 +181,7 @@ var sendAjax = function sendAjax(type, action, data, success) {
     success: success,
     error: function error(xhr, status, _error) {
       var messageObj = JSON.parse(xhr.responseText);
-      handleError(messageObj.error);
+      userError ? userError(messageObj.error) : handleError(messageObj.error);
     }
   });
 };

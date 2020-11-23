@@ -2,10 +2,12 @@ const models = require('../models');
 
 const { Account } = models;
 
+// render the login/signup page
 const loginPage = (req, res) => {
   res.render('login', { csrfToken: req.csrfToken(), title: 'Login' });
 };
 
+// render the main app
 const appPage = (req, res) => {
   res.render('app', {
     csrfToken: req.csrfToken(),
@@ -13,11 +15,13 @@ const appPage = (req, res) => {
   });
 };
 
+// destroy current user session to log them out
 const logout = (req, res) => {
   req.session.destroy();
   res.redirect('/');
 };
 
+// handle user login
 const login = (request, response) => {
   const req = request;
   const res = response;
@@ -43,6 +47,7 @@ const login = (request, response) => {
   );
 };
 
+// handle changing the users password
 const changePassword = (req, res) => {
   // cast strings for security
   const oldPassword = `${req.body.oldPassword}`;
@@ -77,6 +82,7 @@ const changePassword = (req, res) => {
   );
 };
 
+// handle new users creating an account
 const signup = (request, response) => {
   const req = request;
   const res = response;
@@ -121,6 +127,7 @@ const signup = (request, response) => {
   });
 };
 
+// provide the security token
 const getToken = (request, response) => {
   const req = request;
   const res = response;
@@ -132,10 +139,12 @@ const getToken = (request, response) => {
   res.json(csrfJSON);
 };
 
+// return the current user account
 const getAccount = (req, res) => {
   res.json({ account: req.session.account });
 };
 
+// set the current user account to be unlocked
 const unlockAccount = (req, res) => {
   Account.AccountModel.findByUsername(
     req.session.account.username,
@@ -159,6 +168,7 @@ const unlockAccount = (req, res) => {
   );
 };
 
+// add the given score to the user account
 const addScore = (req, res) => {
   if (req.body.score) {
     Account.AccountModel.findByUsername(

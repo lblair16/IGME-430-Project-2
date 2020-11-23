@@ -9,6 +9,9 @@ const Tabs = ReactBootstrap.Tabs;
 const Tab = ReactBootstrap.Tab;
 const Form = ReactBootstrap.Form;
 const Button = ReactBootstrap.Button;
+const OverlayTrigger = ReactBootstrap.OverlayTrigger;
+const Tooltip = ReactBootstrap.Tooltip;
+const Alert = ReactBootstrap.Alert;
 
 //timer vars for scoring
 let lastTime = 0;
@@ -40,6 +43,7 @@ const Game = (props) => {
     createGame(true);
   }, [props.level]);
 
+  //generate the the circle colors and positions for the given level
   const createGame = (newLevel) => {
     let tempGame = {};
     lastTime = 0;
@@ -79,7 +83,7 @@ const Game = (props) => {
     return currFill;
   };
 
-  //get all of the active colors at the start of a game
+  //get all of the active colors in the current game
   const getAllActive = (newGame) => {
     let allColors = [];
     for (let key of Object.keys(newGame)) {
@@ -122,13 +126,13 @@ const Game = (props) => {
     <div>
       <Container>
         <Row style={{ marginTop: "10px" }}>
-          <Col>
+          <Col className="center-items">
             <h5>Last Score: {lastScore}</h5>
           </Col>
-          <Col>
+          <Col className="center-items">
             <h5>Score: {score}</h5>
           </Col>
-          <Col>
+          <Col className="center-items">
             <h5>Account Score: {props.currAccount.score}</h5>
           </Col>
         </Row>
@@ -189,11 +193,13 @@ const App = (props) => {
   const [newPassword, setNewPassword] = useState("");
   const [csrf, setCsrf] = useState();
   const [currAccount, setCurrAccount] = useState({});
+  const [showAlert, setShowAlert] = useState(false);
+  const [errorText, setErrorText] = useState("Error");
 
   const levels = [
-    { name: "3x3", value: "1" },
-    { name: "4x4", value: "2" },
-    { name: "5x5", value: "3" },
+    { name: "3x3", value: "1", points: 0 },
+    { name: "4x4", value: "2", points: 10000 },
+    { name: "5x5", value: "3", points: 20000 },
   ];
 
   //on load get security token
@@ -202,6 +208,7 @@ const App = (props) => {
     getAccount();
   }, []);
 
+  //update the available levels when the account is updated
   useEffect(() => {
     setDisabledLevels({
       1: false,
@@ -230,26 +237,47 @@ const App = (props) => {
     });
   };
 
+  //show an error alert with the message
+  const handleError = (message) => {
+    setShowAlert(true);
+    setErrorText(message);
+  };
+
+  //change the account password
   const changePassword = () => {
     let passwordData = {
       oldPassword: password2,
       newPassword: newPassword,
       _csrf: csrf,
     };
-    sendAjax("POST", "/changePassword", passwordData, () => {
-      setNewPassword("");
-      setPassword2("");
-    });
+    sendAjax(
+      "POST",
+      "/changePassword",
+      passwordData,
+      () => {
+        setNewPassword("");
+        setPassword2("");
+      },
+      handleError
+    );
   };
 
+  //unlocks the account so that all levels are available
   const unlockAccount = () => {
-    sendAjax("GET", "/unlockAccount", null, (result) => {
-      if (result.account) {
-        setCurrAccount(result.account);
-      }
-    });
+    sendAjax(
+      "GET",
+      "/unlockAccount",
+      null,
+      (result) => {
+        if (result.account) {
+          setCurrAccount(result.account);
+        }
+      },
+      handleError
+    );
   };
 
+  //adds the score to the user's account 
   const addScore = (newScore) => {
     let scoreData = {
       score: newScore,
@@ -283,20 +311,53 @@ const App = (props) => {
             <Row>
               <Col>
                 <ButtonGroup toggle className="center-items">
-                  {levels.map((level, idx) => (
-                    <ToggleButton
-                      key={idx}
-                      type="radio"
-                      variant="secondary"
-                      name="radio"
-                      value={level.value}
-                      checked={currLevel === level.value}
-                      onChange={(e) => setCurrLevel(e.currentTarget.value)}
-                      disabled={disabledLevels[level.value]}
-                    >
-                      {level.name}
-                    </ToggleButton>
-                  ))}
+                  {levels.map((level, idx) => {
+                    if (
+                      currAccount.score < level.points &&
+                      !currAccount.unlocked
+                    ) {
+                      return (
+                        <OverlayTrigger
+                          key={idx}
+                          placement="top"
+                          overlay={
+                            <Tooltip>
+                              {currAccount.score}/{level.points} Points
+                            </Tooltip>
+                          }
+                        >
+                          <ToggleButton
+                            type="radio"
+                            variant="secondary"
+                            name="radio"
+                            value={level.value}
+                            checked={currLevel === level.value}
+                            onChange={(e) =>
+                              setCurrLevel(e.currentTarget.value)
+                            }
+                            disabled={disabledLevels[level.value]}
+                          >
+                            {level.name}
+                          </ToggleButton>
+                        </OverlayTrigger>
+                      );
+                    } else {
+                      return (
+                        <ToggleButton
+                          key={idx}
+                          type="radio"
+                          variant="secondary"
+                          name="radio"
+                          value={level.value}
+                          checked={currLevel === level.value}
+                          onChange={(e) => setCurrLevel(e.currentTarget.value)}
+                          disabled={disabledLevels[level.value]}
+                        >
+                          {level.name}
+                        </ToggleButton>
+                      );
+                    }
+                  })}
                 </ButtonGroup>
               </Col>
             </Row>
@@ -313,6 +374,15 @@ const App = (props) => {
         </Tab>
         <Tab eventKey="account" title="Account">
           <Container className="account-container">
+            {showAlert && (
+              <Alert
+                variant="danger"
+                onClose={() => setShowAlert(false)}
+                dismissible
+              >
+                <Alert.Heading>{errorText}</Alert.Heading>
+              </Alert>
+            )}
             <Row>
               <Col>
                 <h3>Account Settings</h3>

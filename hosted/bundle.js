@@ -32,7 +32,10 @@ var ButtonGroup = ReactBootstrap.ButtonGroup;
 var Tabs = ReactBootstrap.Tabs;
 var Tab = ReactBootstrap.Tab;
 var Form = ReactBootstrap.Form;
-var Button = ReactBootstrap.Button; //timer vars for scoring
+var Button = ReactBootstrap.Button;
+var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+var Tooltip = ReactBootstrap.Tooltip;
+var Alert = ReactBootstrap.Alert; //timer vars for scoring
 
 var lastTime = 0;
 var currTime = 0;
@@ -63,7 +66,7 @@ var Game = function Game(props) {
 
   useEffect(function () {
     createGame(true);
-  }, [props.level]);
+  }, [props.level]); //generate the the circle colors and positions for the given level
 
   var createGame = function createGame(newLevel) {
     var tempGame = {};
@@ -107,7 +110,7 @@ var Game = function Game(props) {
     var index = Math.floor(Math.random() * Math.floor(colors.length));
     var currFill = colors[index];
     return currFill;
-  }; //get all of the active colors at the start of a game
+  }; //get all of the active colors in the current game
 
 
   var getAllActive = function getAllActive(newGame) {
@@ -172,7 +175,13 @@ var Game = function Game(props) {
     style: {
       marginTop: "10px"
     }
-  }, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Last Score: ", lastScore)), /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Score: ", score)), /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Account Score: ", props.currAccount.score))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+  }, /*#__PURE__*/React.createElement(Col, {
+    className: "center-items"
+  }, /*#__PURE__*/React.createElement("h5", null, "Last Score: ", lastScore)), /*#__PURE__*/React.createElement(Col, {
+    className: "center-items"
+  }, /*#__PURE__*/React.createElement("h5", null, "Score: ", score)), /*#__PURE__*/React.createElement(Col, {
+    className: "center-items"
+  }, /*#__PURE__*/React.createElement("h5", null, "Account Score: ", props.currAccount.score))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
     className: "center-items"
   }, /*#__PURE__*/React.createElement("h5", {
     className: "target-label"
@@ -253,21 +262,35 @@ var App = function App(props) {
       currAccount = _useState22[0],
       setCurrAccount = _useState22[1];
 
+  var _useState23 = useState(false),
+      _useState24 = _slicedToArray(_useState23, 2),
+      showAlert = _useState24[0],
+      setShowAlert = _useState24[1];
+
+  var _useState25 = useState("Error"),
+      _useState26 = _slicedToArray(_useState25, 2),
+      errorText = _useState26[0],
+      setErrorText = _useState26[1];
+
   var levels = [{
     name: "3x3",
-    value: "1"
+    value: "1",
+    points: 0
   }, {
     name: "4x4",
-    value: "2"
+    value: "2",
+    points: 10000
   }, {
     name: "5x5",
-    value: "3"
+    value: "3",
+    points: 20000
   }]; //on load get security token
 
   useEffect(function () {
     getToken();
     getAccount();
-  }, []);
+  }, []); //update the available levels when the account is updated
+
   useEffect(function () {
     setDisabledLevels({
       1: false,
@@ -287,7 +310,14 @@ var App = function App(props) {
     sendAjax("GET", "/getAccount", null, function (result) {
       setCurrAccount(result.account);
     });
-  };
+  }; //show an error alert with the message
+
+
+  var handleError = function handleError(message) {
+    setShowAlert(true);
+    setErrorText(message);
+  }; //change the account password
+
 
   var changePassword = function changePassword() {
     var passwordData = {
@@ -298,16 +328,18 @@ var App = function App(props) {
     sendAjax("POST", "/changePassword", passwordData, function () {
       setNewPassword("");
       setPassword2("");
-    });
-  };
+    }, handleError);
+  }; //unlocks the account so that all levels are available
+
 
   var unlockAccount = function unlockAccount() {
     sendAjax("GET", "/unlockAccount", null, function (result) {
       if (result.account) {
         setCurrAccount(result.account);
       }
-    });
-  };
+    }, handleError);
+  }; //adds the score to the user's account 
+
 
   var addScore = function addScore(newScore) {
     var scoreData = {
@@ -342,18 +374,36 @@ var App = function App(props) {
     toggle: true,
     className: "center-items"
   }, levels.map(function (level, idx) {
-    return /*#__PURE__*/React.createElement(ToggleButton, {
-      key: idx,
-      type: "radio",
-      variant: "secondary",
-      name: "radio",
-      value: level.value,
-      checked: currLevel === level.value,
-      onChange: function onChange(e) {
-        return setCurrLevel(e.currentTarget.value);
-      },
-      disabled: disabledLevels[level.value]
-    }, level.name);
+    if (currAccount.score < level.points && !currAccount.unlocked) {
+      return /*#__PURE__*/React.createElement(OverlayTrigger, {
+        key: idx,
+        placement: "top",
+        overlay: /*#__PURE__*/React.createElement(Tooltip, null, currAccount.score, "/", level.points, " Points")
+      }, /*#__PURE__*/React.createElement(ToggleButton, {
+        type: "radio",
+        variant: "secondary",
+        name: "radio",
+        value: level.value,
+        checked: currLevel === level.value,
+        onChange: function onChange(e) {
+          return setCurrLevel(e.currentTarget.value);
+        },
+        disabled: disabledLevels[level.value]
+      }, level.name));
+    } else {
+      return /*#__PURE__*/React.createElement(ToggleButton, {
+        key: idx,
+        type: "radio",
+        variant: "secondary",
+        name: "radio",
+        value: level.value,
+        checked: currLevel === level.value,
+        onChange: function onChange(e) {
+          return setCurrLevel(e.currentTarget.value);
+        },
+        disabled: disabledLevels[level.value]
+      }, level.name);
+    }
   })))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement(Game, {
     level: currLevel,
     currAccount: currAccount,
@@ -363,7 +413,13 @@ var App = function App(props) {
     title: "Account"
   }, /*#__PURE__*/React.createElement(Container, {
     className: "account-container"
-  }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h3", null, "Account Settings"))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Change Password"), /*#__PURE__*/React.createElement(Form, null, /*#__PURE__*/React.createElement(Form.Group, {
+  }, showAlert && /*#__PURE__*/React.createElement(Alert, {
+    variant: "danger",
+    onClose: function onClose() {
+      return setShowAlert(false);
+    },
+    dismissible: true
+  }, /*#__PURE__*/React.createElement(Alert.Heading, null, errorText)), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h3", null, "Account Settings"))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Change Password"), /*#__PURE__*/React.createElement(Form, null, /*#__PURE__*/React.createElement(Form.Group, {
     controlId: "oldPassword"
   }, /*#__PURE__*/React.createElement(Form.Label, null, "Current Password"), /*#__PURE__*/React.createElement(Form.Control, {
     type: "password",
@@ -394,15 +450,18 @@ var rootElement = document.getElementById("content");
 ReactDOM.render( /*#__PURE__*/React.createElement(App, null), rootElement);
 "use strict";
 
+//redirect the window to the appropriate page
 var redirect = function redirect(response) {
   window.location = response.redirect;
-};
+}; //default error handler if one isn't provided
+
 
 var handleError = function handleError(message) {
   console.log(message);
-};
+}; //handle an ajax request
 
-var sendAjax = function sendAjax(type, action, data, success) {
+
+var sendAjax = function sendAjax(type, action, data, success, userError) {
   $.ajax({
     cache: false,
     type: type,
@@ -412,7 +471,7 @@ var sendAjax = function sendAjax(type, action, data, success) {
     success: success,
     error: function error(xhr, status, _error) {
       var messageObj = JSON.parse(xhr.responseText);
-      handleError(messageObj.error);
+      userError ? userError(messageObj.error) : handleError(messageObj.error);
     }
   });
 };
