@@ -41,7 +41,7 @@ var lastTime = 0;
 var currTime = 0;
 
 var Game = function Game(props) {
-  var colors = ["#f54242", "#f58142", "#f5e042", "#bcf542", "#72f542", "#42f5a7", "#42f5f2", "#42a4f5", "#4542f5", "#8142f5", "#d442f5", "#f54281"];
+  var colors = ["#f54242", "#f58142", "#f5e042", "#5f006e", "#72f542", "#42f5a7", "#42f5f2", "#42a4f5", "#4542f5", "#8142f5", "#d442f5", "#f54281"];
 
   var _useState = useState([]),
       _useState2 = _slicedToArray(_useState, 2),
@@ -338,7 +338,7 @@ var App = function App(props) {
         setCurrAccount(result.account);
       }
     }, handleError);
-  }; //adds the score to the user's account 
+  }; //adds the score to the user's account
 
 
   var addScore = function addScore(newScore) {
@@ -443,7 +443,20 @@ var App = function App(props) {
   }, "Submit")))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("h5", null, "Unlock All Content"), !currAccount.unlocked && /*#__PURE__*/React.createElement(Button, {
     variant: "outline-light",
     onClick: unlockAccount
-  }, "Purchase"), currAccount.unlocked && /*#__PURE__*/React.createElement("p", null, "Purchased!")))))));
+  }, "Purchase"), currAccount.unlocked && /*#__PURE__*/React.createElement("p", null, "Purchased!"))))), /*#__PURE__*/React.createElement(Tab, {
+    eventKey: "instructions",
+    title: "Instructions"
+  }, /*#__PURE__*/React.createElement(Container, null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+    style: {
+      marginTop: "20px"
+    }
+  }, /*#__PURE__*/React.createElement("h5", null, "How To Play"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      backgroundColor: "black",
+      padding: "10px",
+      borderRadius: "10px"
+    }
+  }, "Click on the circle in the grid that matches the color of the target to get rid of that circle. The faster you can clear all of the circles the better your score will be. Collect more points to unlock all of the levels, or they can all be purchased in the account settings.")))))));
 };
 
 var rootElement = document.getElementById("content");

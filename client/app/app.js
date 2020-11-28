@@ -22,7 +22,7 @@ const Game = (props) => {
     "#f54242",
     "#f58142",
     "#f5e042",
-    "#bcf542",
+    "#5f006e",
     "#72f542",
     "#42f5a7",
     "#42f5f2",
@@ -277,7 +277,7 @@ const App = (props) => {
     );
   };
 
-  //adds the score to the user's account 
+  //adds the score to the user's account
   const addScore = (newScore) => {
     let scoreData = {
       score: newScore,
@@ -425,6 +425,28 @@ const App = (props) => {
                   </Button>
                 )}
                 {currAccount.unlocked && <p>Purchased!</p>}
+              </Col>
+            </Row>
+          </Container>
+        </Tab>
+        <Tab eventKey="instructions" title="Instructions">
+          <Container>
+            <Row>
+              <Col style={{ marginTop: "20px" }}>
+                <h5>How To Play</h5>
+                <p
+                  style={{
+                    backgroundColor: "black",
+                    padding: "10px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  Click on the circle in the grid that matches the color of the
+                  target to get rid of that circle. The faster you can clear all
+                  of the circles the better your score will be. Collect more
+                  points to unlock all of the levels, or they can all be
+                  purchased in the account settings.
+                </p>
               </Col>
             </Row>
           </Container>
