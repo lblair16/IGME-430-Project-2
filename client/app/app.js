@@ -327,6 +327,7 @@ const App = (props) => {
                           }
                         >
                           <ToggleButton
+                            className="levelSelect"
                             type="radio"
                             variant="secondary"
                             name="radio"
@@ -344,6 +345,7 @@ const App = (props) => {
                     } else {
                       return (
                         <ToggleButton
+                          className="levelSelect"
                           key={idx}
                           type="radio"
                           variant="secondary"
