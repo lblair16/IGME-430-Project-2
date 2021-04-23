@@ -380,7 +380,6 @@ var App = function App(props) {
         placement: "top",
         overlay: /*#__PURE__*/React.createElement(Tooltip, null, currAccount.score, "/", level.points, " Points")
       }, /*#__PURE__*/React.createElement(ToggleButton, {
-        className: "levelSelect",
         type: "radio",
         variant: "secondary",
         name: "radio",
@@ -393,7 +392,6 @@ var App = function App(props) {
       }, level.name));
     } else {
       return /*#__PURE__*/React.createElement(ToggleButton, {
-        className: "levelSelect",
         key: idx,
         type: "radio",
         variant: "secondary",
