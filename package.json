@@ -45,7 +45,7 @@
     "express-session": "^1.17.1",
     "helmet": "^4.2.0",
     "mongoose": "^5.10.13",
-    "redis": "^3.0.2",
+    "redis": "^3.1.1",
     "serve-favicon": "^2.5.0",
     "underscore": "^1.11.0"
   }
