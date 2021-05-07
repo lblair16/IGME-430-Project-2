@@ -47,6 +47,6 @@
     "mongoose": "^5.10.13",
     "redis": "^3.0.2",
     "serve-favicon": "^2.5.0",
-    "underscore": "^1.11.0"
+    "underscore": "^1.12.1"
   }
 }
